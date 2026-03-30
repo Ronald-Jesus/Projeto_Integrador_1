@@ -1,64 +1,80 @@
-🧠 SAPA: Sistema de Autoconhecimento Psicológico Automatizado
+# 🧠 SAPA - Sistema de Autoconhecimento Psicológico Automatizado
 
-Linguagem • Estilo • Licença
+![Status](https://img.shields.io/badge/status-em%20andamento-yellow)
+![Licença](https://img.shields.io/badge/license-MIT-blue)
+![Tecnologias](https://img.shields.io/badge/stack-HTML%20%7C%20CSS%20%7C%20JS%20%7C%20Python-green)
 
-Descrição • Objetivos • Tecnologias • Equipe • Licença
+---
 
-🚀 1. Descrição do Projeto
+## 🚀 1. Descrição do Projeto
 
-O SAPA (Sistema de Autoconhecimento Psicológico Automatizado) é uma aplicação digital que tem como objetivo auxiliar usuários no processo de autoconhecimento por meio da coleta, organização e análise de dados comportamentais.
-O projeto surge da dificuldade comum que muitas pessoas enfrentam em compreender seus próprios hábitos, emoções e padrões de comportamento, o que impacta diretamente na qualidade de suas decisões pessoais, acadêmicas e profissionais.
-A solução proposta consiste em um sistema que permite ao usuário registrar informações do seu dia a dia — como hábitos e estados emocionais — e, a partir desses dados, gerar insights simples e significativos, promovendo maior consciência sobre si mesmo.
-Diferente de aplicativos tradicionais de produtividade, o SAPA se destaca por integrar conceitos de computação e psicologia, transformando dados subjetivos em informações estruturadas e úteis para reflexão e desenvolvimento pessoal.
-Este repositório contém o protótipo inicial (MVP) e a documentação desenvolvidos para a disciplina de Projeto Integrador I.
+O **SAPA (Sistema de Autoconhecimento Psicológico Automatizado)** é uma aplicação digital desenvolvida para auxiliar usuários no processo de autoconhecimento por meio da **coleta, organização e análise de dados comportamentais**.
 
-🎯 2. Objetivos Iniciais
+O projeto nasce da dificuldade comum de compreender hábitos, emoções e padrões de comportamento — fatores que impactam diretamente decisões pessoais e profissionais.
 
-Para a primeira fase do projeto, o foco está na validação da proposta por meio de um MVP simples e funcional. Os principais objetivos são:
+A proposta consiste em permitir que o usuário registre informações do seu dia a dia (hábitos, emoções, rotinas) e, a partir disso, o sistema gere **insights simples e relevantes**, promovendo maior consciência sobre si mesmo.
 
-📊 Coletar Dados Pessoais:
-Permitir o registro de hábitos e estados emocionais de forma simples, contínua e acessível.
+💡 Diferente de apps tradicionais, o SAPA integra:
+- Computação
+- Psicologia
+- Análise de dados comportamentais
 
-📈 Visualizar Informações:
-Desenvolver uma interface intuitiva que permita ao usuário acompanhar seu histórico de dados.
+📦 Este repositório contém:
+- Protótipo inicial (MVP)
+- Documentação da disciplina Projeto Integrador I
 
-🔍 Identificar Padrões Comportamentais:
-Analisar os registros para identificar relações entre hábitos, emoções e comportamentos.
+---
 
-💡 Validar a Hipótese:
-Verificar se o uso da plataforma contribui para o aumento do autoconhecimento e melhora na tomada de decisões.
+## 🎯 2. Objetivos Iniciais
 
-🛠️ Tecnologias Utilizadas
+O foco atual é validar a proposta por meio de um **MVP simples e funcional**.
 
-O MVP foi desenvolvido com foco em simplicidade, agilidade e eficiência, utilizando tecnologias fundamentais:
-HTML5
-CSS3
-JavaScript
-Python
+### 📊 Coletar Dados Pessoais
+Registro contínuo de hábitos e estados emocionais.
 
-👥 3. Membros da Equipe e Papéis
-Membro	Papel
-👑 Tomás Peva	 - Product Owner (PO) – Responsável por maximizar o valor do produto, atuando como ponte entre stakeholders e equipe de desenvolvimento, garantindo que o sistema atenda às necessidades e gere valor.
-🧠 Rodrigo Mesquita	- Scrum Master (SM) – Responsável por garantir a aplicação das práticas do Scrum, remover impedimentos e facilitar a colaboração da equipe, promovendo eficiência no processo de desenvolvimento.
-💻 Davi Santiago -	Desenvolvedor (Dev Team) – Responsável pela construção das funcionalidades do sistema e entrega de incrementos do produto.
-🗄️ Gabriel Lopes -	Administrador de Banco de Dados (DBA) – Responsável pela modelagem, manutenção, segurança e integridade dos dados do sistema.
-📄 Ronald de Jesus -	Pesquisa e Documentação – Responsável pelo suporte conceitual do projeto e organização da documentação técnica.
+### 📈 Visualizar Informações
+Interface intuitiva para acompanhamento de dados.
 
-💻 Equipe (Geral)	Desenvolvimento Full-Stack – Colaboração no desenvolvimento do front-end e back-end da aplicação.
+### 🔍 Identificar Padrões
+Análise de relações entre hábitos, emoções e comportamentos.
 
-📂 4. Estrutura do Repositório
+### 💡 Validar a Hipótese
+Verificar se a plataforma melhora o autoconhecimento e tomada de decisão.
 
-A organização do projeto segue uma estrutura modular para facilitar manutenção e escalabilidade:
+---
 
-🎨 /design: Protótipos, mockups, identidade visual e materiais gráficos
-📄 /docs: Documentação do projeto (requisitos, atas, relatórios, etc.)
-🗄️ /database: Scripts de banco de dados (modelagem, criação e manutenção)
-🧪 /prototype: Protótipos e versões iniciais do MVP
-👨‍💻 /src: Código-fonte principal da aplicação
+## 🛠️ Tecnologias Utilizadas
 
-📈 Status do Projeto
-Em andamento
+O projeto foi desenvolvido com foco em simplicidade e agilidade:
 
-🧠 Diferencial do Projeto
+- 🌐 HTML5  
+- 🎨 CSS3  
+- ⚙️ JavaScript  
+- 🐍 Python  
 
-O SAPA propõe uma abordagem inovadora ao unir tecnologia e psicologia para transformar dados simples do cotidiano em insights úteis e aplicáveis, permitindo que o usuário não apenas registre informações, mas compreenda seus próprios comportamentos e evolua de forma contínua.
+---
+
+## 👥 3. Equipe e Papéis
+
+| Membro | Papel |
+|------|------|
+| 👑 **Tomás Peva** | Product Owner (PO) |
+| 🧠 **Rodrigo Mesquita** | Scrum Master (SM) |
+| 💻 **Davi Santiago** | Desenvolvedor |
+| 🗄️ **Gabriel Lopes** | DBA |
+| 📄 **Ronald de Jesus** | Pesquisa e Documentação |
+
+### 💻 Equipe (Geral)
+Atuação em **Full-Stack**, colaborando no front-end e back-end.
+
+---
+
+## 📂 4. Estrutura do Repositório
+
+```bash
+📁 SAPA
+├── 🎨 design/       # Protótipos, mockups e identidade visual
+├── 📄 docs/         # Documentação do projeto
+├── 🗄️ database/     # Scripts e modelagem do banco
+├── 🧪 prototype/    # Protótipo inicial (MVP)
+├── 👨‍💻 src/         # Código-fonte principal
