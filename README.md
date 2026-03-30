@@ -57,12 +57,3 @@ O **SAPA** é uma aplicação voltada ao **autoconhecimento**, permitindo que us
 
 ---
 
-## 📂 Estrutura do Projeto
-
-```bash
-📁 SAPA
-├── 🎨 design/
-├── 📄 docs/
-├── 🗄️ database/
-├── 🧪 prototype/
-├── 👨‍💻 src/
