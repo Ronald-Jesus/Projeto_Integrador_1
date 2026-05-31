@@ -1,0 +1,62 @@
+{
+  "versao_algoritmo": "1.0.0",
+  "data_execucao": "2026-05-31 21:57:06",
+  "total_usuarios": 10,
+  "distribuicao_risco": {
+    "🟡 Atenção": 10
+  },
+  "score_medio": 59.1,
+  "alertas_criticos": [],
+  "alertas_atencao": [
+    {
+      "id_usuario": 1,
+      "score_final": 46.8,
+      "fator_principal": "Qualidade do sono"
+    },
+    {
+      "id_usuario": 2,
+      "score_final": 56.1,
+      "fator_principal": "Qualidade do sono"
+    },
+    {
+      "id_usuario": 3,
+      "score_final": 56.8,
+      "fator_principal": "Qualidade do sono"
+    },
+    {
+      "id_usuario": 4,
+      "score_final": 60.5,
+      "fator_principal": "Humor emocional"
+    },
+    {
+      "id_usuario": 5,
+      "score_final": 59.2,
+      "fator_principal": "Humor emocional"
+    },
+    {
+      "id_usuario": 6,
+      "score_final": 65.7,
+      "fator_principal": "Nível de estresse"
+    },
+    {
+      "id_usuario": 7,
+      "score_final": 67.7,
+      "fator_principal": "Humor emocional"
+    },
+    {
+      "id_usuario": 8,
+      "score_final": 60.3,
+      "fator_principal": "Qualidade do sono"
+    },
+    {
+      "id_usuario": 9,
+      "score_final": 58.8,
+      "fator_principal": "Humor emocional"
+    },
+    {
+      "id_usuario": 10,
+      "score_final": 58.9,
+      "fator_principal": "Humor emocional"
+    }
+  ]
+}
