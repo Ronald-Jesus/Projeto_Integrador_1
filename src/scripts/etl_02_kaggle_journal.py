@@ -48,15 +48,31 @@ def transformar(df):
     df_transformado['id_fonte'] = 2
     df_transformado['data_entrada'] = pd.Timestamp.now().strftime('%Y-%m-%d')
     
-    df_transformado['texto_entrada'] = df.get('answer (text)', 'Sem Texto')
-    
-    def descobrir_emocao(linha):
-        for col in df.columns:
-            if col.startswith('f1.') and linha[col] == True:
-                return col.split('.')[1].strip().capitalize()
-        return 'Não Informado'
+    # Coluna de texto (nome varia por versão do dataset)
+    texto_col = next((c for c in df.columns if 'answer' in c and 'f1' not in c and 't1' not in c), None)
+    df_transformado['texto_entrada'] = df[texto_col] if texto_col else 'Sem Texto'
 
-    df_transformado['emocao_rotulada'] = df.apply(descobrir_emocao, axis=1)
+    # Colunas de emoção: padrão "answer.f1.<emocao>.raw"
+    emocao_cols = [c for c in df.columns if 'answer.f1.' in c and c.endswith('.raw')]
+
+    if emocao_cols:
+        logger.info(f"  Colunas de emoção encontradas: {emocao_cols}")
+        # Para cada linha, pega todas as emoções marcadas como True e escolhe a primeira
+        def descobrir_emocao(linha):
+            ativas = [c for c in emocao_cols if linha[c] == True]
+            if not ativas:
+                return 'Não Informado'
+            # Extrai o nome da emoção do padrão "answer.f1.<emocao>.raw"
+            return ativas[0].split('.')[2].strip().capitalize()
+        df_transformado['emocao_rotulada'] = df[emocao_cols].apply(
+            lambda row: next(
+                (col.split('.')[2].capitalize() for col in emocao_cols if row[col] == True),
+                'Não Informado'
+            ), axis=1
+        )
+    else:
+        logger.warning("  Nenhuma coluna de emoção encontrada — usando 'Não Informado'")
+        df_transformado['emocao_rotulada'] = 'Não Informado'
     df_transformado['comprimento_texto'] = df_transformado['texto_entrada'].str.len()
     
     logger.info(f"  Registros transformados: {len(df_transformado)}")

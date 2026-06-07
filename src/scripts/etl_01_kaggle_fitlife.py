@@ -57,16 +57,29 @@ def transformar(df):
     else:
         df_transformado['data_registro'] = pd.Timestamp.now().strftime('%Y-%m-%d')
         
-    # 5. Mapeamento Dinâmico com .get()
-    # Sintaxe: df.get('nome_da_coluna', valor_se_der_erro)
-    df_transformado['emocao_principal'] = df.get('mood', 'Não Informado')
-    df_transformado['humor_score'] = df.get('mood_score', 0)
-    df_transformado['atividade'] = df.get('activity', 'Não Informado')
-    df_transformado['duracao_min'] = df.get('duration_minutes', 0)
-    df_transformado['calorias'] = df.get('calories_burned', 0)
-    df_transformado['frequencia_cardiaca_media'] = df.get('heart_rate_avg', 0)
-    df_transformado['qualidade_sono'] = df.get('sleep_quality', 'Não Informado')
-    df_transformado['nivel_estresse'] = df.get('stress_level', 0)
+    # 5. Mapeamento corrigido para colunas reais do FitLife
+    n = len(df)
+
+    def col_str(candidates, default='Não Informado'):
+        for c in candidates:
+            if c in df.columns:
+                return df[c].fillna(default)
+        return pd.Series([default] * n, index=df.index)
+
+    def col_num(candidates, default=0):
+        for c in candidates:
+            if c in df.columns:
+                return pd.to_numeric(df[c], errors='coerce').fillna(default)
+        return pd.Series([default] * n, index=df.index)
+
+    df_transformado['emocao_principal']        = col_str(['primary emotion', 'mood'])
+    df_transformado['humor_score']             = col_num(['mood before (1-10)', 'mood after (1-10)', 'mood_score'])
+    df_transformado['atividade']               = col_str(['activity', 'sub-category'])
+    df_transformado['duracao_min']             = col_num(['duration (minutes)', 'duration_minutes'])
+    df_transformado['calorias']                = col_num(['calories_burned', 'calories burned'])
+    df_transformado['frequencia_cardiaca_media'] = col_num(['heart_rate_avg', 'heart rate avg'])
+    df_transformado['qualidade_sono']          = col_str(['sleep_quality', 'sleep quality'])
+    df_transformado['nivel_estresse']          = col_num(['stress level (1-10)', 'stress_level'])
     
     logger.info(f"  Registros transformados: {len(df_transformado)}")
     return df_transformado
