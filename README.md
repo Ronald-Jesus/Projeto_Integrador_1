@@ -14,6 +14,8 @@ O projeto surge da dificuldade comum que muitas pessoas enfrentam em compreender
 
 A solução proposta consiste em um sistema que permite ao usuário registrar informações do seu dia a dia como hábitos e estados emocionais e, a partir desses dados, gerar **insights simples e significativos**, promovendo maior consciência sobre si mesmo.
 
+Além disso, uma das funções do aplicativo seria servir como suporte para a função do trabalho do profissional da psicologia durante a avaliação dos quadros do paciente. Fornecendo dados aprofundados, infográficos de humor diários, levantamento de informações relevantes descritas pelo próprio paciente por meio de um sistema tipo "diário" que poderiam passar batidas no momento da consulta e ferramentas de IA para compreensão imediata de situações cotidianas, permitindo melhor entendimento dos acontecimentos, o aplicativo busca, com essas adições, tornar o trabalho do psicólogo mais objetivo, certeiro, completo e aprofundado.
+
 ---
 
 ## 🎯 2. Objetivos Iniciais
