@@ -1,2 +1,0 @@
-2026-05-31 19:17:53,994 | ERROR    | Erro Crítico de Importação: No module named 'pysus'
-2026-05-31 19:17:53,995 | ERROR    | Verifique se o run_all_etl.py está na mesma pasta que os arquivos etl_*.py
