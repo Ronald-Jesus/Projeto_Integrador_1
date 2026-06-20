@@ -5,7 +5,13 @@
   <img src="https://img.shields.io/badge/license-MIT-blue?style=for-the-badge"/>
   <img src="https://img.shields.io/badge/stack-HTML%20%7C%20CSS%20%7C%20JS%20%7C%20Python-green?style=for-the-badge"/>
 </p>
+## 🔗 Links Rápidos
 
+| Recurso | Link de Acesso |
+| :--- | :--- |
+| **Dashboard Interativo** | [ronald-jesus.github.io/Projeto_Integrador_1](https://ronald-jesus.github.io/Projeto_Integrador_1/) |
+
+---
 ## 🚀 1. Descrição do Projeto
 
 O **SAPA (Sistema de Autoconhecimento Psicológico Automatizado)** é uma aplicação digital que tem como objetivo auxiliar usuários no processo de autoconhecimento por meio da **coleta, organização e análise de dados comportamentais**.
