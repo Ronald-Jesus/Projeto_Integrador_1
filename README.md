@@ -5,7 +5,8 @@
   <img src="https://img.shields.io/badge/license-MIT-blue?style=for-the-badge"/>
   <img src="https://img.shields.io/badge/stack-HTML%20%7C%20CSS%20%7C%20JS%20%7C%20Python-green?style=for-the-badge"/>
 </p>
-## 🔗 Links Rápidos
+
+##🔗 Links Rápidos
 
 | Recurso | Link de Acesso |
 | :--- | :--- |
