@@ -1,0 +1,857 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SAPA — Dashboard de Autoconhecimento Psicológico</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+  <style>
+    :root {
+      --purple: #8B87C7;
+      --purple-dark: #6B67A7;
+      --purple-light: rgba(139,135,199,0.12);
+      --purple-btn: #8B87C7;
+      --bg: #F0EEF9;
+      --card: #FFFFFF;
+      --border: #EAE8F5;
+      --text: #1E1B4B;
+      --text-gray: #6B7280;
+      --shadow: 0 1px 8px rgba(100,90,180,0.09);
+    }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; }
+
+    /* ── LOADING ── */
+    #loading {
+      position: fixed; inset: 0; background: rgba(240,238,249,0.96);
+      display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 9999;
+    }
+    .spinner { width: 44px; height: 44px; border: 3px solid #DDD8F5; border-top-color: var(--purple); border-radius: 50%; animation: spin 0.9s linear infinite; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    #loading-msg { margin-top: 14px; color: var(--purple-dark); font-size: 14px; font-weight: 500; }
+    #loading-sub { margin-top: 5px; color: var(--text-gray); font-size: 12px; }
+
+    /* ── HEADER ── */
+    .header {
+      background: var(--card); border-bottom: 1px solid var(--border);
+      padding: 22px 32px; display: flex; align-items: center; justify-content: space-between;
+      box-shadow: 0 1px 4px rgba(100,90,180,0.06);
+    }
+    .header-left h1 { font-size: 21px; font-weight: 700; color: var(--text); }
+    .header-left p  { font-size: 12px; color: var(--text-gray); margin-top: 3px; }
+    .btn-primary {
+      background: var(--purple-btn); color: white; border: none; border-radius: 8px;
+      padding: 10px 20px; font-size: 13px; font-weight: 600; cursor: pointer;
+      transition: background 0.15s;
+    }
+    .btn-primary:hover { background: var(--purple-dark); }
+
+    /* ── TABS ── */
+    .tabs {
+      background: var(--card); border-bottom: 1px solid var(--border);
+      padding: 0 32px; display: flex; overflow-x: auto;
+      position: sticky; top: 0; z-index: 100; box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+    }
+    .tab {
+      padding: 13px 18px; cursor: pointer; font-size: 13px; font-weight: 500;
+      color: var(--text-gray); border-bottom: 2px solid transparent; margin-bottom: -1px;
+      white-space: nowrap; transition: all 0.15s; user-select: none;
+    }
+    .tab:hover { color: var(--purple); }
+    .tab.active { color: var(--purple-dark); border-bottom-color: var(--purple); font-weight: 700; }
+
+    /* ── MAIN ── */
+    .main { padding: 24px 32px; max-width: 1400px; margin: 0 auto; }
+    .page { display: none; }
+    .page.active { display: block; }
+
+    /* ── FILTER BAR ── */
+    .filter-bar {
+      background: var(--card); border: 1px solid var(--border); border-radius: 12px;
+      padding: 16px 20px; display: flex; gap: 14px; flex-wrap: wrap; align-items: center;
+      margin-bottom: 20px; box-shadow: var(--shadow);
+    }
+    .filter-group { display: flex; flex-direction: column; gap: 4px; flex: 1; min-width: 140px; }
+    .filter-group label { font-size: 11px; color: var(--text-gray); font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; }
+    .filter-select {
+      padding: 8px 10px; border: 1px solid var(--border); border-radius: 7px;
+      font-size: 13px; color: var(--text); background: var(--bg); cursor: pointer;
+    }
+    .filter-select:focus { outline: none; border-color: var(--purple); }
+
+    /* ── KPI CARDS ── */
+    .kpi-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 16px; margin-bottom: 20px; }
+    .kpi {
+      background: var(--card); border: 1px solid var(--border); border-radius: 12px;
+      padding: 18px 20px; display: flex; justify-content: space-between; align-items: center;
+      box-shadow: var(--shadow);
+    }
+    .kpi-left {}
+    .kpi-label { font-size: 11px; color: var(--text-gray); font-weight: 500; margin-bottom: 6px; }
+    .kpi-value { font-size: 28px; font-weight: 800; color: var(--text); line-height: 1; }
+    .kpi-sub { font-size: 10px; color: var(--text-gray); margin-top: 4px; }
+    .kpi-icon { width: 38px; height: 38px; border-radius: 10px; background: var(--purple-light); display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+    .kpi-icon svg { width: 20px; height: 20px; stroke: var(--purple-dark); fill: none; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+
+    /* ── CHART CARDS ── */
+    .charts-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(420px, 1fr)); gap: 18px; }
+    .chart-card {
+      background: var(--card); border: 1px solid var(--border); border-radius: 14px;
+      padding: 20px 22px; box-shadow: var(--shadow);
+    }
+    .chart-card.wide { grid-column: 1 / -1; }
+    .chart-title { font-size: 14px; font-weight: 700; color: var(--text); margin-bottom: 4px; }
+    .chart-sub { font-size: 11.5px; color: var(--text-gray); margin-bottom: 16px; line-height: 1.5; }
+    .chart-wrap { position: relative; }
+
+    /* ── INFO BOX ── */
+    .info-box { background: #EEF0FF; border: 1px solid #CCCEF5; border-radius: 8px; padding: 9px 14px; font-size: 11.5px; color: #5557AA; margin-bottom: 18px; }
+
+    /* ── FOOTER ── */
+    footer { text-align: center; padding: 20px 32px; font-size: 11px; color: #B0AAD0; margin-top: 32px; }
+  </style>
+</head>
+<body>
+
+<!-- LOADING -->
+<div id="loading">
+  <div class="spinner"></div>
+  <div id="loading-msg">Carregando dados reais do projeto SAPA...</div>
+  <div id="loading-sub">Buscando CSVs do repositório GitHub</div>
+</div>
+
+<!-- HEADER -->
+<header class="header">
+  <div class="header-left">
+    <h1>SAPA – Sistema de Autoconhecimento Psicológico Automatizado</h1>
+    <p>Dashboard de Análise de Dados Psicológicos · Projeto Integrador I · CEUB 2026</p>
+  </div>
+  <button class="btn-primary" onclick="location.reload()">Atualizar Dados</button>
+</header>
+
+<!-- TABS -->
+<nav class="tabs">
+  <div class="tab active" onclick="showPage(0)">📊 Visão Geral</div>
+  <div class="tab" onclick="showPage(1)">💪 Emoções &amp; Atividades</div>
+  <div class="tab" onclick="showPage(2)">📖 Diários Emocionais</div>
+  <div class="tab" onclick="showPage(3)">🇧🇷 Saúde no Brasil</div>
+  <div class="tab" onclick="showPage(4)">🌍 Tendências Globais</div>
+</nav>
+
+<!-- MAIN -->
+<main class="main">
+
+  <!-- PAGE 0 -->
+  <section class="page active" id="page-0">
+
+    <!-- KPIs -->
+    <div class="kpi-row">
+      <div class="kpi">
+        <div class="kpi-left">
+          <div class="kpi-label">Registros de Atividades</div>
+          <div class="kpi-value" id="k-atv">—</div>
+          <div class="kpi-sub">Dataset FitLife (Kaggle)</div>
+        </div>
+        <div class="kpi-icon">
+          <svg viewBox="0 0 24 24"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+        </div>
+      </div>
+      <div class="kpi">
+        <div class="kpi-left">
+          <div class="kpi-label">Entradas nos Diários</div>
+          <div class="kpi-value" id="k-diary">—</div>
+          <div class="kpi-sub">Dataset DailyDialog</div>
+        </div>
+        <div class="kpi-icon">
+          <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+        </div>
+      </div>
+      <div class="kpi">
+        <div class="kpi-left">
+          <div class="kpi-label">Emoções Únicas</div>
+          <div class="kpi-value" id="k-unicas">—</div>
+          <div class="kpi-sub">Categorias distintas</div>
+        </div>
+        <div class="kpi-icon">
+          <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M8 14s1.5 2 4 2 4-2 4-2"/><line x1="9" y1="9" x2="9.01" y2="9"/><line x1="15" y1="9" x2="15.01" y2="9"/></svg>
+        </div>
+      </div>
+      <div class="kpi">
+        <div class="kpi-left">
+          <div class="kpi-label">Humor Médio</div>
+          <div class="kpi-value" id="k-humor">—</div>
+          <div class="kpi-sub">Escala de 0 a 10</div>
+        </div>
+        <div class="kpi-icon">
+          <svg viewBox="0 0 24 24"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg>
+        </div>
+      </div>
+    </div>
+
+    <div class="charts-grid">
+      <div class="chart-card">
+        <div class="chart-title">Top Emoções — Registros de Atividades</div>
+        <div class="chart-sub">As 10 emoções mais frequentes reportadas junto com atividades físicas no dataset FitLife. Indica quais estados emocionais mais acompanham a prática de exercícios.</div>
+        <div class="chart-wrap" style="height:270px"><canvas id="c0-atv"></canvas></div>
+      </div>
+      <div class="chart-card">
+        <div class="chart-title">Emoções nos Diários Pessoais</div>
+        <div class="chart-sub">Distribuição proporcional dos estados emocionais nas entradas do DailyDialog. Revela quais emoções as pessoas mais descrevem em texto livre.</div>
+        <div class="chart-wrap" style="height:270px"><canvas id="c0-diary"></canvas></div>
+      </div>
+      <div class="chart-card wide">
+        <div class="chart-title">Evolução da Prevalência de Depressão no Brasil (1990–2019)</div>
+        <div class="chart-sub">Percentual estimado da população brasileira com diagnóstico de depressão ao longo de 30 anos. Fonte: IHME — Global Burden of Disease 2019.</div>
+        <div class="chart-wrap" style="height:240px"><canvas id="c0-brasil"></canvas></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- PAGE 1 -->
+  <section class="page" id="page-1">
+    <div class="filter-bar">
+      <div class="filter-group">
+        <label>Emoção</label>
+        <select class="filter-select" id="f1-emocao" onchange="buildPage1()">
+          <option value="">Todas</option>
+        </select>
+      </div>
+      <div class="filter-group">
+        <label>Atividade</label>
+        <select class="filter-select" id="f1-ativ" onchange="buildPage1()">
+          <option value="">Todas</option>
+        </select>
+      </div>
+    </div>
+    <div class="info-box" id="p1-note"></div>
+
+    <div class="charts-grid">
+      <div class="chart-card wide">
+        <div class="chart-title">Top 15 Atividades Mais Praticadas</div>
+        <div class="chart-sub">Quantidade de registros por modalidade esportiva. Mostra quais práticas são mais comuns entre os usuários do dataset FitLife (Kaggle).</div>
+        <div class="chart-wrap" style="height:300px"><canvas id="c1-ativ"></canvas></div>
+      </div>
+      <div class="chart-card">
+        <div class="chart-title">Frequência de Emoções Durante Atividades</div>
+        <div class="chart-sub">Quantas vezes cada emoção foi registrada nas sessões de atividade física. Identifica os estados emocionais mais associados ao exercício.</div>
+        <div class="chart-wrap" style="height:290px"><canvas id="c1-emocoes"></canvas></div>
+      </div>
+      <div class="chart-card">
+        <div class="chart-title">Pontuação de Humor por Emoção (0–10)</div>
+        <div class="chart-sub">Média do humor reportado para cada estado emocional. Emoções positivas tendem a pontuar mais alto, enquanto negativas correlacionam com menor bem-estar.</div>
+        <div class="chart-wrap" style="height:290px"><canvas id="c1-humor"></canvas></div>
+      </div>
+      <div class="chart-card wide">
+        <div class="chart-title">Nível de Estresse por Tipo de Atividade (0–10)</div>
+        <div class="chart-sub">Estresse médio reportado durante cada modalidade. Verde = baixo (&lt;5) · Amarelo = moderado (5–7) · Vermelho = alto (&gt;7).</div>
+        <div class="chart-wrap" style="height:280px"><canvas id="c1-stress"></canvas></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- PAGE 2 -->
+  <section class="page" id="page-2">
+    <div class="filter-bar">
+      <div class="filter-group">
+        <label>Emoção</label>
+        <select class="filter-select" id="f2-emocao" onchange="buildPage2()">
+          <option value="">Todas</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="charts-grid">
+      <div class="chart-card">
+        <div class="chart-title">Distribuição das Emoções nos Diários</div>
+        <div class="chart-sub">Proporção de cada estado emocional nas entradas do DailyDialog. Emoções frequentes revelam os temas dominantes nos relatos pessoais dos participantes.</div>
+        <div class="chart-wrap" style="height:300px"><canvas id="c2-dist"></canvas></div>
+      </div>
+      <div class="chart-card">
+        <div class="chart-title">Extensão Média dos Relatos por Emoção</div>
+        <div class="chart-sub">Número médio de caracteres por entrada de diário. Emoções complexas como tristeza e ansiedade costumam gerar relatos mais elaborados.</div>
+        <div class="chart-wrap" style="height:300px"><canvas id="c2-len"></canvas></div>
+      </div>
+      <div class="chart-card wide">
+        <div class="chart-title">Volume Total de Entradas por Emoção</div>
+        <div class="chart-sub">Quantidade absoluta de registros para cada categoria emocional no corpus completo de diários do dataset DailyDialog (Li et al., 2017).</div>
+        <div class="chart-wrap" style="height:250px"><canvas id="c2-vol"></canvas></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- PAGE 3 -->
+  <section class="page" id="page-3">
+    <div class="filter-bar">
+      <div class="filter-group">
+        <label>Região</label>
+        <select class="filter-select" id="f3-regiao" onchange="buildPage3()">
+          <option value="">Todas as Regiões</option>
+          <option>Norte</option><option>Nordeste</option><option>Sudeste</option><option>Sul</option><option>Centro-Oeste</option>
+        </select>
+      </div>
+      <div class="filter-group">
+        <label>Faixa de Renda</label>
+        <select class="filter-select" id="f3-renda" onchange="buildPage3()">
+          <option value="">Todas as Faixas</option>
+          <option>Até 2 SM</option><option>2-5 SM</option><option>5-10 SM</option><option>10-20 SM</option><option>Acima de 20 SM</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="charts-grid">
+      <div class="chart-card">
+        <div class="chart-title">Gasto Médio com Saúde Mental por Região (R$)</div>
+        <div class="chart-sub">Média anual das despesas domiciliares com saúde mental (consultas e medicamentos) por grande região do Brasil. Fonte: POF/IBGE 2017–2018.</div>
+        <div class="chart-wrap" style="height:280px"><canvas id="c3-reg"></canvas></div>
+      </div>
+      <div class="chart-card">
+        <div class="chart-title">Participação da Saúde Mental no Gasto Total (%)</div>
+        <div class="chart-sub">Percentual médio que saúde mental representa no total de gastos com saúde das famílias, segmentado por faixa de renda em salários mínimos (SM).</div>
+        <div class="chart-wrap" style="height:280px"><canvas id="c3-renda"></canvas></div>
+      </div>
+      <div class="chart-card wide">
+        <div class="chart-title">Comparativo de Categorias de Gasto por Região (R$/ano)</div>
+        <div class="chart-sub">Média anual das quatro categorias de despesa com saúde por região. Permite comparar o peso relativo de cada categoria em diferentes partes do país.</div>
+        <div class="chart-wrap" style="height:290px"><canvas id="c3-comp"></canvas></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- PAGE 4 -->
+  <section class="page" id="page-4">
+    <div class="filter-bar">
+      <div class="filter-group">
+        <label>Segmentar por Sexo (OMS)</label>
+        <select class="filter-select" id="f4-genero" onchange="buildPage4()">
+          <option value="SEX_BTSX">Ambos os Sexos</option>
+          <option value="SEX_FMLE">Feminino</option>
+          <option value="SEX_MLE">Masculino</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="charts-grid">
+      <div class="chart-card wide">
+        <div class="chart-title">Depressão no Brasil: 30 Anos de Evolução (1990–2019)</div>
+        <div class="chart-sub">Percentual estimado da população brasileira com diagnóstico de transtorno depressivo maior, calculado anualmente pelo IHME (Institute for Health Metrics and Evaluation).</div>
+        <div class="chart-wrap" style="height:270px"><canvas id="c4-brasil"></canvas></div>
+      </div>
+      <div class="chart-card">
+        <div class="chart-title">Prevalência de Transtornos Mentais por Sexo (OMS)</div>
+        <div class="chart-sub">Taxa média de prevalência de transtornos mentais (%) por sexo, segundo o Atlas de Saúde Mental da OMS — dados de múltiplos países e anos.</div>
+        <div class="chart-wrap" style="height:270px"><canvas id="c4-genero"></canvas></div>
+      </div>
+      <div class="chart-card">
+        <div class="chart-title">Tendência Global: Taxa por Ano (OMS)</div>
+        <div class="chart-sub">Evolução da taxa média de prevalência de transtornos mentais no mundo, por ano. Use o filtro de sexo acima para comparar tendências entre grupos.</div>
+        <div class="chart-wrap" style="height:270px"><canvas id="c4-trend"></canvas></div>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<footer>
+  SAPA · Sistema de Autoconhecimento Psicológico Automatizado · Projeto Integrador I · CEUB 2026 ·
+  Fontes: FitLife (Kaggle) · DailyDialog (Li et al., 2017) · POF/IBGE 2017–2018 · IHME GBD 2019 · OMS Atlas
+</footer>
+
+<script>
+// ── CONFIG ──────────────────────────────────────
+const RAW = 'https://raw.githubusercontent.com/Ronald-Jesus/Projeto_Integrador_1/main/data/processed/csv/';
+const URLS = {
+  atv:    RAW + 'emocoes_atividades.csv',
+  diary:  RAW + 'diarios_emocoes.csv',
+  pof:    RAW + 'despesas_saude_pof.csv',
+  brasil: RAW + 'prevalencia_depressao_global.csv',
+  oms:    RAW + 'prevalencia_oms.csv'
+};
+
+// Paleta no estilo Figma — roxo pastel
+const C = {
+  main:    '#8B87C7',
+  dark:    '#6B67A7',
+  fill:    'rgba(139,135,199,0.13)',
+  multi:   ['#8B87C7','#A5A0D5','#6EC6C6','#F5A97F','#F0819A','#72B8F0','#A7D777','#C99AD0','#F2CC74','#7EC8B2','#E891A4','#87B8E8'],
+  grid:    '#EAE8F5',
+  stress:  { low:'#86CFA4', mid:'#F5C76E', high:'#F09090' }
+};
+
+// ── TRADUÇÕES ────────────────────────────────────
+const EMO_PT = {
+  // Positivas — bem-estar
+  'Happy':'Feliz','Happiness':'Felicidade','Joy':'Alegria','Joyful':'Alegre',
+  'Excited':'Animado','Blissful':'Radiante','Elated':'Eufórico','Ecstatic':'Extasiado',
+  'Content':'Satisfeito','Satisfied':'Satisfeito','Pleased':'Agradado',
+  'Calm':'Calmo','Peaceful':'Tranquilo','Serene':'Sereno','Relaxed':'Relaxado',
+  'Energized':'Energizado','Energetic':'Energético','Invigorated':'Revigorado',
+  'Recharged':'Recarregado','Refreshed':'Renovado','Revitalized':'Revitalizado',
+  'Rejuvenated':'Rejuvenescido','Stimulated':'Estimulado','Pumped':'Animado',
+  'Proud':'Orgulhoso','Accomplished':'Realizado','Fulfilled':'Pleno',
+  'Confident':'Confiante','Empowered':'Empoderado','Strong':'Forte','Powerful':'Poderoso',
+  'Motivated':'Motivado','Determined':'Determinado','Focused':'Focado',
+  'Grateful':'Grato','Appreciated':'Apreciado','Supported':'Apoiado','Understood':'Compreendido',
+  'Hopeful':'Esperançoso','Optimistic':'Otimista','Inspired':'Inspirado','Insightful':'Perspicaz',
+  'Creative':'Criativo','Curious':'Curioso','Engaged':'Engajado','Interested':'Interessado',
+  'Innovative':'Inovador','Analytical':'Analítico','Challenged':'Desafiado',
+  'Playful':'Brincalhão','Carefree':'Despreocupado','Lighthearted':'Leve','Free':'Livre',
+  'Connected':'Conectado','Included':'Incluído','Loved':'Amado','Valued':'Valorizado',
+  'Alive':'Vivo','Uplifted':'Elevado','Balanced':'Equilibrado','Grounded':'Estável',
+  'Centered':'Centrado','Mindful':'Atento','Clear-minded':'Mente Clara',
+  'Self-aware':'Autoconsciente','Enlightened':'Iluminado','Expressive':'Expressivo',
+  'Agile':'Ágil','Flexible':'Flexível','Healthy':'Saudável','Resilient':'Resiliente',
+  'Adventurous':'Aventureiro',
+  // Neutras
+  'Neutral':'Neutro','Surprised':'Surpreso','Surprise':'Surpresa',
+  'Indifferent':'Indiferente','Nostalgic':'Nostálgico','Reflective':'Reflexivo',
+  'Pensive':'Pensativo','Ambivalent':'Ambivalente','Thoughtful':'Pensativo',
+  // Físicas / sensações corporais
+  'Sweaty':'Suado','Sore':'Dolorido','Tired':'Cansado','Exhausted':'Esgotado',
+  'Drained':'Sem Energia','Heavy':'Pesado','Weak':'Fraco','Numb':'Entorpecido',
+  'Tense':'Tenso','Stiff':'Rígido','Uncomfortable':'Desconfortável','Fatigued':'Fatigado',
+  // Negativas
+  'Sad':'Triste','Melancholy':'Melancólico','Gloomy':'Sombrio','Down':'Pra Baixo',
+  'Angry':'Irritado','Anger':'Raiva','Frustrated':'Frustrado','Irritated':'Irritado','Annoyed':'Aborrecido',
+  'Anxious':'Ansioso','Worried':'Preocupado','Nervous':'Nervoso','Restless':'Inquieto',
+  'Stressed':'Estressado','Overwhelmed':'Sobrecarregado','Pressured':'Pressionado','Burnt Out':'Esgotado',
+  'Fearful':'Com Medo','Fear':'Medo','Afraid':'Com Medo','Scared':'Assustado',
+  'Bored':'Entediado','Disengaged':'Desengajado','Apathetic':'Apático',
+  'Lonely':'Solitário','Isolated':'Isolado','Disconnected':'Desconectado',
+  'Depressed':'Deprimido','Hopeless':'Sem Esperança','Defeated':'Derrotado',
+  'Confused':'Confuso','Lost':'Perdido','Uncertain':'Incerto',
+  'Guilty':'Culpado','Ashamed':'Envergonhado','Embarrassed':'Envergonhado',
+  'Jealous':'Ciumento','Envious':'Invejoso','Resentful':'Ressentido',
+  'Hurt':'Magoado','Betrayed':'Traído','Rejected':'Rejeitado',
+  'Disgusted':'Repulsa','Disgust':'Nojo','Shame':'Vergonha','Awkward':'Desajeitado'
+};
+
+const ATV_PT = {
+  // Corrida e caminhada
+  'Running':'Corrida','Jogging':'Trote','Walking':'Caminhada','Speed Walking':'Caminhada Rápida',
+  'Hiking':'Trilha','Trail Running':'Corrida em Trilha','Long Distance Running':'Corrida Longa',
+  'Charity Walks':'Caminhada Solidária','Cardio':'Cardio',
+  // Ciclismo
+  'Cycling':'Ciclismo','Mountain Biking':'Mountain Bike','Biking':'Ciclismo',
+  // Natação e esportes aquáticos
+  'Swimming':'Natação','Water Aerobics':'Hidroginástica','Water Polo':'Polo Aquático',
+  'Surfing':'Surfe','Kayaking':'Caiaque','Canoeing':'Canoagem',
+  'Rowing':'Remo','Paddleboarding':'Paddleboard','Stand-up Paddling':'Stand-up Paddle',
+  'Sailing':'Vela','Snorkeling':'Mergulho','Windsurfing':'Windsurf',
+  'Scuba Diving':'Mergulho Autônomo','Hydrotherapy':'Hidroterapia',
+  // Academia e musculação
+  'Gym':'Academia','Weight Training':'Musculação','Resistance Training':'Treino de Resistência',
+  'Weightlifting':'Musculação','CrossFit':'CrossFit','HIIT':'HIIT',
+  'Circuit Training':'Treino em Circuito','Functional Training':'Treino Funcional',
+  'Body Pump':'Body Pump','Outdoor Bootcamp':'Treino ao Ar Livre','Spinning':'Spinning',
+  // Yoga, pilates e bem-estar
+  'Pilates':'Pilates','Yoga':'Yoga','Power Yoga':'Power Yoga',
+  'Stretching':'Alongamento','Flexibility Training':'Flexibilidade','Foam Rolling':'Rolo de Espuma',
+  'Meditation':'Meditação','Mindful Breathing':'Respiração Consciente','Breathwork':'Respiração',
+  'Tai Chi':'Tai Chi','Qi Gong':'Qi Gong','Qigong':'Qigong','Body Scan':'Escaneamento Corporal',
+  'Spa/Bath':'Spa/Banho','Aromatherapy':'Aromaterapia','Acupuncture':'Acupuntura',
+  'Cold Therapy':'Crioterapia','Rehabilitation Exercises':'Fisioterapia',
+  'Massage':'Massagem','Sauna':'Sauna',
+  // Aeróbica e dança fitness
+  'Aerobics':'Aeróbica','Zumba':'Zumba','Jump Rope':'Pular Corda',
+  // Artes marciais e lutas
+  'Boxing':'Boxe','Kickboxing':'Kickboxing','Martial Arts':'Artes Marciais',
+  'Judo':'Judô','Karate':'Karatê','Aikido':'Aikido','Capoeira':'Capoeira',
+  'Wrestling':'Luta Livre','Taekwondo':'Taekwondo','Muay Thai':'Muay Thai',
+  'Fencing':'Esgrima','Kung Fu':'Kung Fu',
+  // Esportes coletivos
+  'Basketball':'Basquete','Soccer':'Futebol','Football':'Fut. Americano',
+  'Volleyball':'Vôlei','Handball':'Handebol','Baseball':'Beisebol',
+  'Cricket':'Críquete','Rugby':'Rugby','Hockey':'Hóquei','Field Hockey':'Hóquei de Campo',
+  'Lacrosse':'Lacrosse','Cheerleading':'Cheerleading','Ultimate Frisbee':'Frisbee',
+  'Frisbee':'Frisbee','Dodgeball':'Queimado',
+  // Raquete e individuais
+  'Tennis':'Tênis','Badminton':'Badminton','Squash':'Squash','Golf':'Golfe',
+  'Archery':'Arco e Flecha','Gymnastics':'Ginástica','Track and Field':'Atletismo',
+  'Triathlon':'Triatlo','Skateboarding':'Skate','Parkour':'Parkour',
+  // Aventura e ao ar livre
+  'Rock Climbing':'Escalada','Climbing':'Escalada','Bungee Jumping':'Bungee Jumping',
+  'Camping':'Camping','Horse Riding':'Equitação','Birdwatching':'Obs. de Pássaros',
+  'Fishing':'Pesca','Hunting':'Caça','Foraging':'Coleta na Natureza',
+  'Geocaching':'Geocaching','Skydiving':'Paraquedismo','Paragliding':'Parapente',
+  'Stargazing':'Observação de Estrelas','Rock Skipping':'Pedras na Água',
+  // Inverno
+  'Skiing':'Esqui','Snowboarding':'Snowboard','Ice Skating':'Patinação no Gelo',
+  // Dança
+  'Dancing':'Dança','Ballet':'Balé','Ballroom':'Dança de Salão',
+  'Ballroom Dancing':'Dança de Salão','Breakdancing':'Breakdance',
+  'Salsa':'Salsa','Contemporary':'Contemporâneo','Hip Hop Dancing':'Hip Hop',
+  'Hip-hop':'Hip-hop','Jazz Dance':'Dança Jazz',
+  // Lazer e entretenimento
+  'Reading for Fun':'Leitura','Reading':'Leitura','Video Games':'Videogame',
+  'Online Gaming':'Jogos Online','Board Games':'Jogos de Tabuleiro','Chess':'Xadrez','Poker':'Poker',
+  'Strategy Games':'Jogos de Estratégia','Trivia':'Quiz','Sudoku':'Sudoku',
+  'Math Puzzles':'Quebra-cabeças de Matemática','Crosswords':'Palavras Cruzadas',
+  'Crossword Puzzles':'Palavras Cruzadas','Crossword':'Palavras Cruzadas','Puzzles':'Quebra-cabeça',
+  'Comedy Shows':'Comédia','Theatre Performances':'Teatro','Community Theatre':'Teatro Comunitário',
+  'Movies/TV':'Filmes/TV','Music Listening':'Ouvir Música','Music Mixing':'Mixagem Musical',
+  'Music Production':'Produção Musical','DJing':'DJ','Playing Instruments':'Tocar Instrumento',
+  'Composing':'Composição','Singing':'Canto','Composing Music':'Composição Musical',
+  'Blogging':'Blog','Forum Discussions':'Fóruns','Science Forums':'Fóruns de Ciência',
+  'Literary Analysis':'Análise Literária','Book Club Meetings':'Clube do Livro',
+  'Critical Thinking Exercises':'Raciocínio Crítico','Debating':'Debate',
+  'Philosophy Discussions':'Filosofia','History Research':'Pesquisa Histórica',
+  'Data Analysis':'Análise de Dados','Science Experiments':'Experimentos Científicos',
+  'Literary Analysis':'Análise Literária','Non-fiction':'Não Ficção','Fiction':'Ficção',
+  // Criativo e artístico
+  'Cooking':'Culinária','Baking':'Panificação','Gardening':'Jardinagem',
+  'Home Decoration':'Decoração','DIY Projects':'Projetos DIY','Painting':'Pintura',
+  'Drawing':'Desenho','Photography':'Fotografia','Nature Photography':'Fotografia da Natureza',
+  'Knitting':'Tricô','Crocheting':'Crochê','Quilting':'Costura/Patchwork',
+  'Beadwork':'Artesanato em Contas','Craft Making':'Artesanato','Collage Making':'Colagem',
+  'Animation':'Animação','Composing Music':'Composição Musical','Digital Art':'Arte Digital',
+  'Origami':'Origami','Woodworking':'Marcenaria','Sculpting':'Escultura',
+  'Journaling':'Diário','Podcast Creation':'Criação de Podcast','Videography':'Videografia',
+  'Graphic Design':'Design Gráfico','Screenwriting':'Roteiro','Poetry':'Poesia',
+  'Essay Writing':'Redação','Picnicking':'Piquenique','Scrapbooking':'Scrapbook',
+  // Social, pessoal e voluntariado
+  'Community Service':'Serviço Comunitário','Volunteering':'Voluntariado',
+  'Fundraising Events':'Eventos de Arrecadação','Neighborhood Cleanups':'Limpeza do Bairro',
+  'Socializing':'Socializar','Networking':'Networking','Networking Events':'Eventos de Networking',
+  'Friend Meetup':'Encontro com Amigos','Social Events':'Eventos Sociais',
+  'Family Time':'Tempo em Família','Parent-Child Bonding':'Tempo com Filhos',
+  'Dating':'Encontro Romântico','Virtual Meetups':'Encontros Virtuais',
+  'Pet Playdates':'Brincadeiras com Pets','Group Activities':'Atividades em Grupo',
+  'Group Discussion':'Discussão em Grupo','Public Speaking':'Oratória',
+  'Public Speaking Practice':'Prática de Oratória','Language Exchange':'Troca de Idiomas',
+  'Community Theatre':'Teatro Comunitário',
+  // Desenvolvimento pessoal
+  'Online Courses':'Cursos Online','Personal Course':'Curso Pessoal',
+  'Leadership Workshops':'Workshops de Liderança','Time Management Training':'Gestão do Tempo',
+  'Mentorship Programs':'Mentoria','Language Learning':'Aprendizado de Idiomas',
+  'Financial Analysis':'Análise Financeira','Financial Planning':'Planejamento Financeiro',
+  'Self-reflection':'Autorreflexão','Gratitude Practice':'Prática de Gratidão',
+  'Mindful Eating':'Alimentação Consciente','Therapy Session':'Sessão de Terapia',
+  'Social Media Interaction':'Redes Sociais',
+  // Wellbeing
+  'Birdwatching':'Obs. de Pássaros','Walking':'Caminhada',
+};
+// Fallback inteligente: converte palavras soltas não mapeadas
+const _fmt = k => {
+  if (!k || k === 'Não informado') return k;
+  const mapped = EMO_PT[k] || ATV_PT[k];
+  if (mapped) return mapped;
+  // retorna o original sem alterar
+  return k;
+};
+const tEmo = k => EMO_PT[k] || k;
+const tAtv = k => ATV_PT[k] || k;
+
+// ── STATE ────────────────────────────────────────
+const D = { atv:[], diary:[], pof:[], brasil:[], oms:[] };
+const charts = {};
+
+// ── HELPERS ──────────────────────────────────────
+const byKey = (arr, k) => {
+  const m = {};
+  arr.forEach(r => { const v = r[k]||'Não informado'; m[v]=(m[v]||0)+1; });
+  return m;
+};
+const avgByKey = (arr, gk, vk) => {
+  const s={},c={};
+  arr.forEach(r=>{ const g=r[gk]||'N/A',v=parseFloat(r[vk]); if(!isNaN(v)){s[g]=(s[g]||0)+v;c[g]=(c[g]||0)+1;} });
+  const o={};
+  Object.keys(s).forEach(k=>o[k]=s[k]/c[k]);
+  return o;
+};
+const sorted = (obj, desc=true) => Object.entries(obj).sort((a,b)=>desc?b[1]-a[1]:a[1]-b[1]);
+
+// Opções de grid tracejado (estilo Figma)
+const gridDash = { color: C.grid, borderDash: [5,5] };
+const noGrid   = { display: false };
+
+const baseScales = (yLabel='', xRot=40) => ({
+  y: { grid: gridDash, border: { dash:[5,5] }, ticks: { font:{size:11}, color:'#9896B8' }, title: yLabel ? { display:true, text:yLabel, color:'#9896B8', font:{size:11} } : undefined },
+  x: { grid: noGrid, ticks: { font:{size:11}, color:'#9896B8', maxRotation:xRot } }
+});
+const baseScalesH = () => ({
+  x: { grid: gridDash, border:{dash:[5,5]}, beginAtZero:true, ticks:{font:{size:11},color:'#9896B8'} },
+  y: { grid: noGrid, ticks:{font:{size:11},color:'#9896B8'} }
+});
+
+function mk(id, config) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  if (charts[id]) charts[id].destroy();
+  charts[id] = new Chart(el, config);
+}
+
+const pluginsBase = (showLegend=false) => ({
+  legend: { display: showLegend, position:'top', labels:{font:{size:11},color:'#6B7280',boxWidth:12,padding:16} },
+  tooltip: { backgroundColor:'rgba(30,27,75,0.85)', titleColor:'#fff', bodyColor:'#C8C5E8', cornerRadius:8, padding:10 }
+});
+
+// ── TABS ─────────────────────────────────────────
+function showPage(i) {
+  document.querySelectorAll('.page').forEach((p,j)=>p.classList.toggle('active',j===i));
+  document.querySelectorAll('.tab').forEach((t,j)=>t.classList.toggle('active',j===i));
+  [buildPage0,buildPage1,buildPage2,buildPage3,buildPage4][i]?.();
+}
+
+// ── PAGE 0 ───────────────────────────────────────
+function buildPage0() {
+  document.getElementById('k-atv').textContent   = D.atv.length.toLocaleString('pt-BR');
+  document.getElementById('k-diary').textContent = D.diary.length.toLocaleString('pt-BR');
+  const unicas = new Set([...D.atv.map(r=>r.emocao_principal),...D.diary.map(r=>r.emocao_rotulada)].filter(Boolean));
+  document.getElementById('k-unicas').textContent = unicas.size;
+  const humors = D.atv.map(r=>parseFloat(r.humor_score)).filter(v=>!isNaN(v)&&v>0);
+  document.getElementById('k-humor').textContent = humors.length ? (humors.reduce((s,v)=>s+v,0)/humors.length).toFixed(1) : '—';
+
+  const top = sorted(byKey(D.atv,'emocao_principal')).slice(0,10);
+  mk('c0-atv',{ type:'bar', data:{
+    labels: top.map(e=>tEmo(e[0])),
+    datasets:[{ data:top.map(e=>e[1]), backgroundColor:C.multi, borderRadius:5 }]
+  }, options:{ responsive:true, maintainAspectRatio:false, plugins:pluginsBase(), scales:baseScales() }});
+
+  const dq = sorted(byKey(D.diary,'emocao_rotulada')).slice(0,9);
+  mk('c0-diary',{ type:'doughnut', data:{
+    labels: dq.map(e=>tEmo(e[0])),
+    datasets:[{ data:dq.map(e=>e[1]), backgroundColor:C.multi, borderWidth:2, borderColor:'#fff', hoverOffset:6 }]
+  }, options:{ responsive:true, maintainAspectRatio:false,
+    plugins:{ ...pluginsBase(true), legend:{display:true,position:'right',labels:{font:{size:11},color:'#6B7280',boxWidth:12}} },
+    cutout:'58%'
+  }});
+
+  const br = [...D.brasil].sort((a,b)=>+a.ano-+b.ano);
+  mk('c0-brasil',{ type:'line', data:{
+    labels: br.map(r=>r.ano),
+    datasets:[{ label:'Prevalência (%)', data:br.map(r=>parseFloat(r.prevalencia_depressao)),
+      borderColor:C.main, backgroundColor:C.fill, fill:true, tension:0.4,
+      pointRadius:3, pointBackgroundColor:C.main, pointBorderColor:'white', pointBorderWidth:2 }]
+  }, options:{ responsive:true, maintainAspectRatio:false,
+    plugins:pluginsBase(),
+    scales:{ y:{...baseScales().y, ticks:{...baseScales().y.ticks, callback:v=>v.toFixed(2)+'%'} }, x:baseScales().x }
+  }});
+}
+
+// ── PAGE 1 ───────────────────────────────────────
+function buildPage1() {
+  const emo = document.getElementById('f1-emocao').value;
+  const atv = document.getElementById('f1-ativ').value;
+  let d = D.atv.filter(r=>r.atividade||r.emocao_principal);
+  if (emo) d = d.filter(r=>r.emocao_principal===emo);
+  if (atv) d = d.filter(r=>r.atividade===atv);
+
+  const a15 = sorted(byKey(d,'atividade')).slice(0,15);
+  mk('c1-ativ',{ type:'bar', data:{
+    labels: a15.map(e=>tAtv(e[0])),
+    datasets:[{ data:a15.map(e=>e[1]), backgroundColor:C.main, borderRadius:5, hoverBackgroundColor:C.dark }]
+  }, options:{ responsive:true, maintainAspectRatio:false, plugins:pluginsBase(), scales:baseScales('Registros') }});
+
+  const em = sorted(byKey(d,'emocao_principal')).slice(0,12);
+  mk('c1-emocoes',{ type:'bar', data:{
+    labels: em.map(e=>tEmo(e[0])),
+    datasets:[{ data:em.map(e=>e[1]), backgroundColor:C.multi, borderRadius:4 }]
+  }, options:{ indexAxis:'y', responsive:true, maintainAspectRatio:false, plugins:pluginsBase(), scales:baseScalesH() }});
+
+  const hm = sorted(avgByKey(d,'emocao_principal','humor_score')).slice(0,10);
+  mk('c1-humor',{ type:'bar', data:{
+    labels: hm.map(e=>tEmo(e[0])),
+    datasets:[{ data:hm.map(e=>+e[1].toFixed(2)), backgroundColor:C.multi, borderRadius:4 }]
+  }, options:{ indexAxis:'y', responsive:true, maintainAspectRatio:false, plugins:pluginsBase(),
+    scales:{ x:{...baseScalesH().x, max:10}, y:baseScalesH().y }
+  }});
+
+  const st = sorted(avgByKey(d,'atividade','nivel_estresse')).slice(0,12);
+  mk('c1-stress',{ type:'bar', data:{
+    labels: st.map(e=>tAtv(e[0])),
+    datasets:[{ data:st.map(e=>+e[1].toFixed(2)),
+      backgroundColor:st.map(e=>e[1]>=7?C.stress.high:e[1]>=5?C.stress.mid:C.stress.low),
+      borderRadius:4 }]
+  }, options:{ responsive:true, maintainAspectRatio:false, plugins:pluginsBase(),
+    scales:{ y:{...baseScales().y, max:10}, x:baseScales().x }
+  }});
+}
+
+// ── PAGE 2 ───────────────────────────────────────
+function buildPage2() {
+  const emo = document.getElementById('f2-emocao').value;
+  let d = emo ? D.diary.filter(r=>r.emocao_rotulada===emo) : D.diary;
+
+  const dist = sorted(byKey(d,'emocao_rotulada'));
+  mk('c2-dist',{ type:'doughnut', data:{
+    labels: dist.map(e=>tEmo(e[0])),
+    datasets:[{ data:dist.map(e=>e[1]), backgroundColor:C.multi, borderWidth:2, borderColor:'#fff', hoverOffset:6 }]
+  }, options:{ responsive:true, maintainAspectRatio:false, cutout:'56%',
+    plugins:{ ...pluginsBase(true), legend:{display:true,position:'right',labels:{font:{size:11},color:'#6B7280',boxWidth:12}} }
+  }});
+
+  const len = sorted(avgByKey(d,'emocao_rotulada','comprimento_texto')).slice(0,10);
+  mk('c2-len',{ type:'bar', data:{
+    labels: len.map(e=>tEmo(e[0])),
+    datasets:[{ data:len.map(e=>Math.round(e[1])), backgroundColor:C.multi, borderRadius:4 }]
+  }, options:{ indexAxis:'y', responsive:true, maintainAspectRatio:false, plugins:pluginsBase(), scales:baseScalesH() }});
+
+  mk('c2-vol',{ type:'bar', data:{
+    labels: dist.map(e=>tEmo(e[0])),
+    datasets:[{ data:dist.map(e=>e[1]), backgroundColor:C.main, borderRadius:4, hoverBackgroundColor:C.dark }]
+  }, options:{ responsive:true, maintainAspectRatio:false, plugins:pluginsBase(), scales:baseScales('Entradas') }});
+}
+
+// ── PAGE 3 ───────────────────────────────────────
+function buildPage3() {
+  const reg   = document.getElementById('f3-regiao').value;
+  const renda = document.getElementById('f3-renda').value;
+  let d = D.pof.map(r=>({...r,
+    dsm: parseFloat(r.despesa_saude_mental)||0,
+    pct: parseFloat(r.pct_saude_mental)||0,
+    dmed:parseFloat(r.despesa_medicamentos)||0,
+    dcon:parseFloat(r.despesa_consultas)||0,
+    dpl: parseFloat(r.despesa_plano_saude)||0
+  }));
+  if (reg)   d = d.filter(r=>r.regiao===reg);
+  if (renda) d = d.filter(r=>r.faixa_renda_familiar===renda);
+
+  const regioes = ['Norte','Nordeste','Sudeste','Sul','Centro-Oeste'];
+  const faixas  = ['Até 2 SM','2-5 SM','5-10 SM','10-20 SM','Acima de 20 SM'];
+  const agg = (arr,gk,vk) => {
+    const s={},c={};
+    arr.forEach(r=>{const g=r[gk];if(!g)return;s[g]=(s[g]||0)+r[vk];c[g]=(c[g]||0)+1;});
+    return Object.fromEntries(Object.entries(s).map(([k,v])=>[k,(v/c[k]).toFixed(2)]));
+  };
+
+  const dsmReg = agg(d,'regiao','dsm');
+  const rL = regioes.filter(r=>dsmReg[r]);
+  mk('c3-reg',{ type:'bar', data:{
+    labels:rL, datasets:[{ data:rL.map(r=>dsmReg[r]), backgroundColor:C.multi.slice(0,5), borderRadius:6 }]
+  }, options:{ responsive:true, maintainAspectRatio:false, plugins:pluginsBase(), scales:baseScales('R$ / ano') }});
+
+  const pctFaixa = agg(d,'faixa_renda_familiar','pct');
+  const fL = faixas.filter(f=>pctFaixa[f]);
+  mk('c3-renda',{ type:'bar', data:{
+    labels:fL, datasets:[{ data:fL.map(f=>pctFaixa[f]), backgroundColor:C.main, borderRadius:6, hoverBackgroundColor:C.dark }]
+  }, options:{ responsive:true, maintainAspectRatio:false, plugins:pluginsBase(),
+    scales:{ y:{...baseScales().y, title:{display:true,text:'% do gasto com saúde',color:'#9896B8',font:{size:11}}}, x:{...baseScales().x,ticks:{...baseScales().x.ticks,maxRotation:15}} }
+  }});
+
+  const medReg={};
+  regioes.forEach(r=>{
+    const rows=d.filter(x=>x.regiao===r);
+    if(!rows.length)return;
+    const avg=k=>rows.reduce((s,x)=>s+(x[k]||0),0)/rows.length;
+    medReg[r]={dmed:avg('dmed'),dcon:avg('dcon'),dpl:avg('dpl'),dsm:avg('dsm')};
+  });
+  const cL=regioes.filter(r=>medReg[r]);
+  mk('c3-comp',{ type:'bar', data:{
+    labels:cL,
+    datasets:[
+      { label:'Medicamentos',   data:cL.map(r=>+medReg[r].dmed.toFixed(0)), backgroundColor:'#8B87C7', borderRadius:3 },
+      { label:'Consultas',      data:cL.map(r=>+medReg[r].dcon.toFixed(0)), backgroundColor:'#72B8F0', borderRadius:3 },
+      { label:'Plano de Saúde', data:cL.map(r=>+medReg[r].dpl.toFixed(0)),  backgroundColor:'#86CFA4', borderRadius:3 },
+      { label:'Saúde Mental',   data:cL.map(r=>+medReg[r].dsm.toFixed(0)),  backgroundColor:'#F5A97F', borderRadius:3 }
+    ]
+  }, options:{ responsive:true, maintainAspectRatio:false,
+    plugins:pluginsBase(true),
+    scales:{ y:{...baseScales().y,title:{display:true,text:'R$ / ano',color:'#9896B8',font:{size:11}}}, x:baseScales().x }
+  }});
+}
+
+// ── PAGE 4 ───────────────────────────────────────
+function buildPage4() {
+  const genero = document.getElementById('f4-genero').value;
+
+  const br = [...D.brasil].sort((a,b)=>+a.ano-+b.ano);
+  mk('c4-brasil',{ type:'line', data:{
+    labels:br.map(r=>r.ano),
+    datasets:[{ label:'Prevalência (%)', data:br.map(r=>parseFloat(r.prevalencia_depressao)),
+      borderColor:C.main, backgroundColor:C.fill, fill:true, tension:0.4,
+      pointRadius:4, pointBackgroundColor:C.main, pointBorderColor:'white', pointBorderWidth:2, pointHoverRadius:6 }]
+  }, options:{ responsive:true, maintainAspectRatio:false,
+    plugins:pluginsBase(),
+    scales:{ y:{...baseScales().y, ticks:{...baseScales().y.ticks,callback:v=>v.toFixed(2)+'%'}}, x:baseScales().x }
+  }});
+
+  const gKeys =['SEX_BTSX','SEX_FMLE','SEX_MLE'];
+  const gNames=['Ambos os Sexos','Feminino','Masculino'];
+  const gColors=[C.main,'#F0819A','#72B8F0'];
+  const gAvgs = gKeys.map(k=>{
+    const vals=D.oms.filter(r=>r.genero===k).map(r=>parseFloat(r.taxa_prevalencia)).filter(v=>!isNaN(v));
+    return vals.length ? +(vals.reduce((s,v)=>s+v,0)/vals.length).toFixed(2) : 0;
+  });
+  mk('c4-genero',{ type:'bar', data:{
+    labels:gNames,
+    datasets:[{ data:gAvgs, backgroundColor:gColors, borderRadius:10, barThickness:55 }]
+  }, options:{ responsive:true, maintainAspectRatio:false,
+    plugins:pluginsBase(),
+    scales:{ y:{...baseScales().y,title:{display:true,text:'Taxa Média (%)',color:'#9896B8',font:{size:11}}}, x:baseScales().x }
+  }});
+
+  const omsF=D.oms.filter(r=>r.genero===genero);
+  const s={},c={};
+  omsF.forEach(r=>{const yr=r.ano,v=parseFloat(r.taxa_prevalencia);if(yr&&!isNaN(v)){s[yr]=(s[yr]||0)+v;c[yr]=(c[yr]||0)+1;}});
+  const yrL=Object.keys(s).sort();
+  const yrV=yrL.map(y=>(s[y]/c[y]).toFixed(2));
+  mk('c4-trend',{ type:'line', data:{
+    labels:yrL,
+    datasets:[{ label:'Taxa (%)', data:yrV, borderColor:C.main, backgroundColor:C.fill, fill:true, tension:0.4,
+      pointRadius:3, pointBackgroundColor:C.main, pointBorderColor:'white', pointBorderWidth:2 }]
+  }, options:{ responsive:true, maintainAspectRatio:false,
+    plugins:pluginsBase(),
+    scales:{ y:{...baseScales().y,ticks:{...baseScales().y.ticks,callback:v=>v+'%'}}, x:baseScales().x }
+  }});
+}
+
+// ── FILTROS ──────────────────────────────────────
+function populateFilters() {
+  const fill = (id,vals,tfn) => {
+    const sel=document.getElementById(id);
+    vals.forEach(v=>{ const o=document.createElement('option'); o.value=v; o.textContent=tfn?tfn(v):v; sel.appendChild(o); });
+  };
+  const uniq = (arr,k) => [...new Set(arr.map(r=>r[k]).filter(Boolean))].sort();
+  fill('f1-emocao', uniq(D.atv,'emocao_principal'), tEmo);
+  fill('f1-ativ',   uniq(D.atv,'atividade'), tAtv);
+  fill('f2-emocao', uniq(D.diary,'emocao_rotulada'), tEmo);
+
+  const note=document.getElementById('p1-note');
+  if (D.atv.length>=4999) {
+    note.textContent='ℹ️ O arquivo emocoes_atividades.csv tem 7,7 MB. São exibidos os primeiros 5.000 registros para melhor desempenho no navegador.';
+  } else { note.style.display='none'; }
+}
+
+// ── LOAD ─────────────────────────────────────────
+async function loadAll() {
+  const msg=(t,s='')=>{
+    document.getElementById('loading-msg').textContent=t;
+    document.getElementById('loading-sub').textContent=s;
+  };
+  try {
+    msg('Carregando atividades (FitLife)…','emocoes_atividades.csv — preview 5.000 linhas');
+    D.atv = await new Promise((res,rej)=>
+      Papa.parse(URLS.atv,{ download:true, header:true, skipEmptyLines:true, preview:5000, complete:r=>res(r.data), error:rej }));
+
+    msg('Carregando diários emocionais…','diarios_emocoes.csv');
+    D.diary = await new Promise((res,rej)=>
+      Papa.parse(URLS.diary,{ download:true, header:true, skipEmptyLines:true, complete:r=>res(r.data), error:rej }));
+
+    msg('Carregando POF/IBGE…','despesas_saude_pof.csv');
+    D.pof = await new Promise((res,rej)=>
+      Papa.parse(URLS.pof,{ download:true, header:true, skipEmptyLines:true, complete:r=>res(r.data), error:rej }));
+
+    msg('Carregando dados do Brasil (IHME)…','prevalencia_depressao_global.csv');
+    D.brasil = await new Promise((res,rej)=>
+      Papa.parse(URLS.brasil,{ download:true, header:true, skipEmptyLines:true, delimiter:';', complete:r=>res(r.data), error:rej }));
+
+    msg('Carregando dados da OMS…','prevalencia_oms.csv');
+    D.oms = await new Promise((res,rej)=>
+      Papa.parse(URLS.oms,{ download:true, header:true, skipEmptyLines:true, delimiter:';', complete:r=>res(r.data), error:rej }));
+
+    populateFilters();
+    buildPage0();
+    document.getElementById('loading').style.display='none';
+
+  } catch(e) {
+    document.getElementById('loading-msg').textContent='⚠️ Erro ao carregar dados';
+    document.getElementById('loading-sub').textContent='Verifique a conexão e recarregue a página.';
+    console.error(e);
+  }
+}
+
+document.addEventListener('DOMContentLoaded', loadAll);
+</script>
+</body>
+</html>
